@@ -1,0 +1,177 @@
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+
+# Set the path to the dataset folder
+data_path = '/Users/kuriakoseaugustine/Downloads/faces'
+
+# Create an ImageDataGenerator object
+datagen = ImageDataGenerator(rescale=1./255)
+
+# Load the images from the dataset folder
+train_generator = datagen.flow_from_directory(
+        data_path,
+        target_size=(224, 224), # Resize the images to (224, 224)
+        batch_size=32, # Set the batch size
+        class_mode='categorical') # Set the mode for the class labels
+
+# The flow_from_directory method reads the images from the dataset folder and applies the preprocessing operations specified in the ImageDataGenerator object.
+
+
+# Load the image data from a directory
+train_data_dir = '/Users/kuriakoseaugustine/Downloads/faces'
+validation_data_dir = '/Users/kuriakoseaugustine/Downloads/faces'
+
+# Define the preprocessing steps
+train_data_generator = ImageDataGenerator(
+        rescale=1./255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True)
+
+validation_data_generator = ImageDataGenerator(rescale=1./255)
+
+# Load the image data into memory
+train_generator = train_data_generator.flow_from_directory(
+        train_data_dir,
+        target_size=(224, 224),
+        batch_size=32,
+        class_mode='binary')
+
+validation_generator = validation_data_generator.flow_from_directory(
+        validation_data_dir,
+        target_size=(224, 224),
+        batch_size=32,
+        class_mode='binary')
+
+# Create and train the model
+model = keras.Sequential([
+    keras.layers.Conv2D(32, kernel_size=(3,3), activation='relu', input_shape=(224,224,3)),
+    keras.layers.MaxPooling2D(pool_size=(2,2)),
+    keras.layers.Flatten(),
+    keras.layers.Dense(128, activation='relu'),
+    keras.layers.Dense(1, activation='sigmoid')
+])
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+model.fit(train_generator, epochs=10, validation_data=validation_generator)
+from tensorflow.keras import models, layers
+
+model = models.Sequential()
+model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(64, 64, 3)))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Flatten())
+model.add(layers.Dense(32, activation='relu'))
+model.add(layers.Dense(2, activation='softmax'))
+
+model.summary()
+
+from tensorflow.keras import models, layers
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# Load the dataset
+train_dir = 'path/to/training/directory'
+val_dir = 'path/to/validation/directory'
+test_dir = 'path/to/testing/directory'
+
+train_datagen = ImageDataGenerator(rescale=1./255,
+                                   shear_range=0.2,
+                                   zoom_range=0.2,
+                                   horizontal_flip=True)
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+train_generator = train_datagen.flow_from_directory(train_dir,
+                                                    target_size=(64, 64),
+                                                    batch_size=32,
+                                                    class_mode='binary')
+
+validation_generator = test_datagen.flow_from_directory(val_dir,
+                                                        target_size=(64, 64),
+                                                        batch_size=32,
+                                                        class_mode='binary')
+
+# Define the model architecture
+model = models.Sequential()
+model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(64, 64, 3)))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Conv2D(64, (3, 3), activation='relu'))
+model.add(layers.MaxPooling2D((2, 2)))
+model.add(layers.Flatten())
+model.add(layers.Dense(64, activation='relu'))
+model.add(layers.Dense(1, activation='sigmoid'))
+
+# Compile the model
+model.compile(loss='binary_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+# Train the model
+history = model.fit(train_generator,
+                    steps_per_epoch=train_generator.n // train_generator.batch_size,
+                    epochs=10,
+                    validation_data=validation_generator,
+                    validation_steps=validation_generator.n // validation_generator.batch_size)
+
+# Evaluate the model
+test_generator = test_datagen.flow_from_directory(test_dir,
+                                                  target_size=(64, 64),
+                                                  batch_size=32,
+                                                  class_mode='binary')
+test_loss, test_acc = model.evaluate(test_generator, steps=test_generator.n // test_generator.batch_size)
+
+print('Test loss:', test_loss)
+print('Test accuracy:', test_acc)
+
+import tensorflow as tf
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.vgg16 import preprocess_input
+import numpy as np
+
+# Load pre-trained VGG-16 model
+model = VGG16(weights='imagenet', include_top=False)
+
+# Define function for feature extraction
+def extract_features(img_path):
+    # Load image and resize to 224x224
+    img = image.load_img(img_path, target_size=(224, 224))
+    # Convert image to array and preprocess for VGG-16
+    x = image.img_to_array(img)
+    x = np.expand_dims(x, axis=0)
+    x = preprocess_input(x)
+    # Pass image through model to get features
+    features = model.predict(x)
+    return features
+
+# Example usage: extract features from image.jpg
+features = extract_features('image.jpg')
+print(features.shape)
+
+# Define input data
+data = np.random.normal(loc=0, scale=1, size=(100, 10)).astype(np.float32)
+
+# Define a TensorFlow dataset
+dataset = tf.data.Dataset.from_tensor_slices(data)
+
+# Define a function to calculate the Mahalanobis distance
+def mahalanobis_distance(x):
+    # Compute the mean and covariance of the data
+    mean, variance = tf.nn.moments(dataset, axes=[0])
+    # Compute the inverse covariance matrix
+    inverse_covariance = tf.linalg.inv(tf.linalg.diag(variance))
+    # Compute the Mahalanobis distance for each point in the input batch
+    distance = tf.reduce_sum(tf.matmul(tf.matmul(x - mean, inverse_covariance), tf.transpose(x - mean)), axis=1)
+    return distance
+
+# Compute the Mahalanobis distance for the input data
+distances = mahalanobis_distance(dataset)
+
+# Extract outliers using a threshold
+threshold = tf.reduce_mean(distances) + 2 * tf.math.reduce_std(distances)
+outliers = tf.boolean_mask(dataset, distances > threshold)
+
+# Print the number of outliers found
+print('Number of outliers:', outliers.shape[0])
